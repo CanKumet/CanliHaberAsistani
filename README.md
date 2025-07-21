@@ -342,9 +342,9 @@ Bu proje MIT lisansı altında lisanslanmıştır. Detaylar için [LICENSE](LICE
 
 ## 👤 **İletişim**
 
-- 📧 Email: your.email@example.com
-- 💼 LinkedIn: [linkedin.com/in/username](https://linkedin.com/in/username)
-- 🐙 GitHub: [@username](https://github.com/username)
+- 📧 Email: cankumet@gmail.com
+- 💼 LinkedIn: [linkedin.com/in/fahri-can-kümet](https://www.linkedin.com/in/fahri-can-k%C3%BCmet/)
+- 🐙 GitHub: [@cankumet](https://github.com/cankumet)
 
 ---
 
@@ -360,7 +360,5 @@ Bu proje MIT lisansı altında lisanslanmıştır. Detaylar için [LICENSE](LICE
 <div align="center">
   
 **⭐ Projeyi beğendiyseniz yıldız vermeyi unutmayın!**
-
-Made with ❤️ by [Your Name]
 
 </div>
