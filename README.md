@@ -342,16 +342,6 @@ OPENROUTER_API_KEY=your_valid_key_here
 
 ---
 
-## 📈 **Performans Metrikleri**
-
-- ⚡ **Veri İşleme**: ~1000 haber/dakika
-- 🔍 **Arama Hızı**: <100ms semantic search
-- 💭 **LLM Yanıt**: ~2-5 saniye
-- 💾 **Vektör DB**: 10K+ embedding kapasitesi
-- 🌐 **Web Response**: <200ms ortalama
-- 🔄 **Sistem İzleme**: 30 saniye aralıklarla
-
----
 
 ## 🤝 **Katkıda Bulunma**
 
