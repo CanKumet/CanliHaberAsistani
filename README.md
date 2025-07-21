@@ -105,7 +105,7 @@ sequenceDiagram
 
 ```
 haber-analiz-sistemi/
-├── 🚀 main.py                 # Ana çalıştırıcı script
+├── 🚀 main.py                 # Otomatik sistem başlatıcı
 ├── 📡 producer.py             # RSS → Kafka producer
 ├── ⚡ spark_streaming.py      # Kafka → MongoDB consumer
 ├── 📝 ozetleyici.py          # LLM ile haber özetleme
@@ -189,32 +189,53 @@ kafka-topics.sh --create --topic haber-akisi --bootstrap-server localhost:9292
 ### 5️⃣ **Uygulama Çalıştırma**
 
 ```bash
-# Tek komutla tüm sistemi başlat
+# 🚀 TEK KOMUTLA TÜM SİSTEMİ BAŞLAT
 python main.py
 
-# Veya manuel olarak:
-python producer.py        # RSS → Kafka
-python spark_streaming.py # Kafka → MongoDB  
-python ozetleyici.py      # Haber özetleme
-python index_haberler.py  # Vektör indexleme
-python app.py            # Web arayüzü
+# Sistem otomatik olarak sırasıyla başlatır:
+# 1️⃣ RSS Producer (arka planda)
+# 2️⃣ Spark Streaming (arka planda) 
+# 3️⃣ Haber Özetleyici (arka planda)
+# 4️⃣ Haber İndexleyici (tek seferlik)
+# 5️⃣ Flask Web App (arka planda)
+
+# Durdurmak için: Ctrl+C
 ```
+
+**🎯 Otomatik Başlatma Süreci:**
+- ✅ Dosya varlık kontrolü
+- 🔄 Servisler arası 15 saniye bekleme
+- 📊 Sürekli sistem izleme
+- 🛡️ Güvenli kapatma (SIGINT/SIGTERM)
 
 ---
 
 ## 🎮 **Kullanım Kılavuzu**
 
-### 🖥️ **Ana Menü (main.py)**
+### 🚀 **Otomatik Sistem Başlatma**
 
 ```
-🎯 HABER ANALİZ SİSTEMİ - ANA MENÜ
-=================================================
-1. 🚀 Tüm uygulamaları sırayla çalıştır
-2. 📋 Mevcut scriptleri listele  
-3. 🎯 Belirli scriptleri çalıştır
-4. 🔧 Sistem kontrolü yap
-5. ❌ Çıkış
-=================================================
+╔══════════════════════════════════════╗
+║          HABER ANALİZ SİSTEMİ        ║
+║              v1.0.0                  ║
+╚══════════════════════════════════════╝
+
+[2024-01-20 15:30:00] 🎯 Haber Analiz Sistemi Başlatılıyor
+============================================================
+[2024-01-20 15:30:01] 1️⃣ RSS Producer başlatılıyor...
+[2024-01-20 15:30:02] ✅ producer.py arka planda başlatıldı (PID: 1234)
+[2024-01-20 15:30:17] 2️⃣ Spark Streaming başlatılıyor...
+[2024-01-20 15:30:18] ✅ spark_streaming.py arka planda başlatıldı (PID: 1235)
+[2024-01-20 15:30:33] 3️⃣ Haber Özetleyici başlatılıyor...
+[2024-01-20 15:30:34] ✅ ozetleyici.py arka planda başlatıldı (PID: 1236)
+[2024-01-20 15:30:49] 4️⃣ Haber İndexleyici çalıştırılıyor...
+[2024-01-20 15:30:52] ✅ index_haberler.py başarıyla tamamlandı
+[2024-01-20 15:31:07] 5️⃣ Flask Web Uygulaması başlatılıyor...
+[2024-01-20 15:31:08] ✅ app.py arka planda başlatıldı (PID: 1237)
+[2024-01-20 15:31:08] 🎉 Tüm servisler başarıyla başlatıldı!
+[2024-01-20 15:31:08] 🌐 Web uygulaması: http://localhost:5000
+============================================================
+[2024-01-20 15:31:08] 💡 Sistem durdurmak için Ctrl+C tuşlayın
 ```
 
 ### 🌐 **Web Dashboard**
@@ -306,10 +327,17 @@ kafka-server-start.sh config/server.properties
 OPENROUTER_API_KEY=your_valid_key_here
 ```
 
-#### ❌ ChromaDB Not Found
+#### ❌ Script Dosyası Bulunamadı
 ```bash
-# Çözüm: İlk kez index_haberler.py çalıştır
-python index_haberler.py
+# Çözüm: Tüm Python dosyalarının mevcut olduğundan emin olun
+[2024-01-20 15:30:00] ⚠️  producer.py dosyası bulunamadı!
+[2024-01-20 15:30:00] ❌ Sistem başlatılamıyor, eksik dosyalar var!
+```
+
+#### ❌ Process Timeout
+```bash
+# Çözüm: Script'lerin 5 dakika içinde tamamlanmasını sağlayın
+[2024-01-20 15:35:00] ⏰ index_haberler.py timeout'a uğradı
 ```
 
 ---
@@ -321,6 +349,7 @@ python index_haberler.py
 - 💭 **LLM Yanıt**: ~2-5 saniye
 - 💾 **Vektör DB**: 10K+ embedding kapasitesi
 - 🌐 **Web Response**: <200ms ortalama
+- 🔄 **Sistem İzleme**: 30 saniye aralıklarla
 
 ---
 
