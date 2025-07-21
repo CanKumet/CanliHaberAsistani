@@ -1,0 +1,1391 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📰 Haber Analiz Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            color: #e2e8f0;
+            overflow-x: hidden;
+        }
+
+        .app-container {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+            border-right: 1px solid #334155;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            z-index: 1000;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .sidebar-header {
+            padding: 2rem 1.5rem;
+            border-bottom: 1px solid #334155;
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #60a5fa, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-menu {
+            flex: 1;
+            padding: 1.5rem 0;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+            position: relative;
+        }
+
+        .nav-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 0;
+            background: linear-gradient(135deg, #3b82f6, #60a5fa);
+            transition: width 0.3s ease;
+        }
+
+        .nav-item:hover::before {
+            width: 3px;
+        }
+
+        .nav-item:hover {
+            background: rgba(59, 130, 246, 0.1);
+            transform: translateX(5px);
+        }
+
+        .nav-item.active {
+            background: rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+        }
+
+        .nav-item.active::before {
+            width: 3px;
+        }
+
+        .nav-item i {
+            width: 20px;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            background: transparent;
+            min-height: 100vh;
+        }
+
+        .content-header {
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(51, 65, 85, 0.3);
+            padding: 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .page-title {
+            font-size: 2.2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #f1f5f9, #cbd5e1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-subtitle {
+            color: #94a3b8;
+            font-size: 1.1rem;
+            font-weight: 400;
+        }
+
+        .content-body {
+            padding: 2rem;
+        }
+
+        /* Dashboard Section */
+        .dashboard-section {
+            display: block;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(51, 65, 85, 0.8) 100%);
+            border: 1px solid rgba(75, 85, 99, 0.3);
+            border-radius: 20px;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #3b82f6, #60a5fa, #34d399);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            border-color: rgba(96, 165, 250, 0.5);
+        }
+
+        .stat-value {
+            font-size: 3rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #60a5fa, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1;
+        }
+
+        .stat-label {
+            color: #cbd5e1;
+            margin-top: 0.5rem;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(51, 65, 85, 0.8) 100%);
+            border: 1px solid rgba(75, 85, 99, 0.3);
+            border-radius: 20px;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: rgba(96, 165, 250, 0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 2rem;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #f1f5f9;
+        }
+
+        .card-header i {
+            color: #60a5fa;
+            font-size: 1.5rem;
+        }
+
+        .news-item {
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid rgba(75, 85, 99, 0.2);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .news-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(96, 165, 250, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .news-item:hover::before {
+            left: 100%;
+        }
+
+        .news-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            border-color: rgba(96, 165, 250, 0.4);
+        }
+
+        .news-title {
+            font-weight: 700;
+            color: #f1f5f9;
+            margin-bottom: 1rem;
+            line-height: 1.5;
+            font-size: 1.1rem;
+        }
+
+        .news-summary {
+            color: #94a3b8;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .news-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            color: #64748b;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .news-meta span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .sentiment-badge {
+            padding: 6px 14px;
+            border-radius: 25px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .sentiment-pozitif {
+            background: linear-gradient(135deg, #065f46, #047857);
+            color: #6ee7b7;
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
+        }
+        .sentiment-negatif {
+            background: linear-gradient(135deg, #7f1d1d, #991b1b);
+            color: #fca5a5;
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
+        }
+        .sentiment-notr {
+            background: linear-gradient(135deg, #78350f, #92400e);
+            color: #fde68a;
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.3);
+        }
+        .sentiment-bilinmiyor {
+            background: linear-gradient(135deg, #374151, #4b5563);
+            color: #d1d5db;
+        }
+
+        /* Chat Section */
+        .chat-section {
+            display: none;
+            height: calc(100vh - 150px);
+        }
+
+        .chat-container {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(51, 65, 85, 0.8) 100%);
+            border: 1px solid rgba(75, 85, 99, 0.3);
+            border-radius: 20px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            backdrop-filter: blur(10px);
+            overflow: hidden;
+        }
+
+        .chat-header {
+            padding: 2rem;
+            border-bottom: 1px solid rgba(75, 85, 99, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .chat-header i {
+            color: #60a5fa;
+            font-size: 2rem;
+        }
+
+        .chat-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: #f1f5f9;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+            background: rgba(15, 23, 42, 0.2);
+        }
+
+        .chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: rgba(51, 65, 85, 0.3);
+            border-radius: 3px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: rgba(96, 165, 250, 0.5);
+            border-radius: 3px;
+        }
+
+        .message {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 2rem;
+            align-items: flex-start;
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .message.user .message-avatar {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+        }
+
+        .message.bot .message-avatar {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        .message-content {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(75, 85, 99, 0.3);
+            border-radius: 20px;
+            padding: 1.5rem;
+            max-width: 75%;
+            line-height: 1.7;
+            font-size: 0.95rem;
+            position: relative;
+            backdrop-filter: blur(5px);
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        .message.bot .message-content {
+            border-color: rgba(16, 185, 129, 0.2);
+        }
+
+        /* Chat suggestions */
+        .suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .suggestion-button {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.05));
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 20px;
+            padding: 8px 16px;
+            font-size: 0.85rem;
+            color: #60a5fa;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-block;
+            backdrop-filter: blur(5px);
+        }
+
+        .suggestion-button:hover {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(59, 130, 246, 0.1));
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(59, 130, 246, 0.2);
+        }
+
+        .typing-indicator {
+            display: none;
+            align-items: center;
+            gap: 10px;
+            color: #64748b;
+            font-style: italic;
+            padding: 1rem 1.5rem;
+            justify-content: center;
+            background: rgba(100, 116, 139, 0.1);
+            margin: 0 1.5rem;
+            border-radius: 15px;
+        }
+
+        .typing-indicator i {
+            animation: spin 1s linear infinite;
+            color: #60a5fa;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .chat-input {
+            padding: 2rem;
+            border-top: 1px solid rgba(75, 85, 99, 0.3);
+            background: rgba(15, 23, 42, 0.3);
+        }
+
+        .input-group {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .chat-input-field {
+            flex: 1;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(75, 85, 99, 0.3);
+            border-radius: 15px;
+            padding: 1rem 1.5rem;
+            color: #f1f5f9;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .chat-input-field:focus {
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
+            background: rgba(15, 23, 42, 0.8);
+        }
+
+        .chat-input-field::placeholder {
+            color: #64748b;
+        }
+
+        .send-btn {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            border: none;
+            border-radius: 15px;
+            padding: 1rem 1.5rem;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        }
+
+        .send-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Chart improvements */
+        .chart-container {
+            height: 300px;
+            margin-top: 1rem;
+            position: relative;
+        }
+
+        .word-cloud {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 1.5rem;
+        }
+
+        .word-tag {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            padding: 10px 18px;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.2);
+        }
+
+        .word-tag:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+        }
+
+        /* Loading states */
+        .loading {
+            text-align: center;
+            color: #64748b;
+            padding: 3rem;
+            font-size: 1.1rem;
+        }
+
+        .loading i {
+            margin-right: 8px;
+            animation: spin 1s linear infinite;
+        }
+
+        /* Error states */
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #fca5a5;
+            padding: 1rem;
+            border-radius: 12px;
+            margin: 1rem 0;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 1200px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .stats-row {
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            }
+
+            .message-content {
+                max-width: 85%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .stats-row {
+                grid-template-columns: 1fr;
+            }
+
+            .content-header, .content-body {
+                padding: 1rem;
+            }
+
+            .page-title {
+                font-size: 1.8rem;
+            }
+
+            .card {
+                padding: 1.5rem;
+            }
+
+            .chat-header {
+                padding: 1.5rem;
+            }
+
+            .chat-input {
+                padding: 1.5rem;
+            }
+
+            .input-group {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .send-btn {
+                width: 100%;
+                padding: 1rem;
+            }
+        }
+
+        /* Animation improvements */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .news-item, .stat-card, .card {
+            animation: fadeInUp 0.5s ease-out;
+        }
+
+        /* Custom scrollbar for webkit browsers */
+        .chat-messages::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: rgba(51, 65, 85, 0.3);
+            border-radius: 4px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #60a5fa, #3b82f6);
+            border-radius: 4px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fas fa-newspaper"></i>
+                    <span>NewsAnalyzer</span>
+                </div>
+            </div>
+
+            <nav class="nav-menu">
+                <div class="nav-item active" onclick="showSection('dashboard')">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Dashboard</span>
+                </div>
+                <div class="nav-item" onclick="showSection('chat')">
+                    <i class="fas fa-robot"></i>
+                    <span>AI Chat</span>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="content-header">
+                <h1 class="page-title" id="page-title">📊 Dashboard</h1>
+                <p class="page-subtitle" id="page-subtitle">Gerçek zamanlı haber analizi ve trendler</p>
+            </header>
+
+            <div class="content-body">
+                <!-- Dashboard Section -->
+                <section class="dashboard-section" id="dashboard-section">
+                    <!-- Stats Cards -->
+                    <div class="stats-row">
+                        <div class="stat-card">
+                            <div class="stat-value" id="toplam-haber">-</div>
+                            <div class="stat-label">Toplam Haber</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="ozetlenmis">-</div>
+                            <div class="stat-label">Özetlenmiş</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="kaynak-sayisi">-</div>
+                            <div class="stat-label">Aktif Kaynak</div>
+                        </div>
+                    </div>
+
+                    <!-- Main Grid -->
+                    <div class="main-grid">
+                        <!-- News List -->
+                        <div class="card">
+                            <h2 class="card-header">
+                                <i class="fas fa-newspaper"></i>
+                                Son Haberler
+                            </h2>
+                            <div id="haberler" class="loading">
+                                <i class="fas fa-spinner"></i>
+                                Haberler yükleniyor...
+                            </div>
+                        </div>
+
+                        <!-- Sentiment Chart -->
+                        <div class="card">
+                            <h2 class="card-header">
+                                <i class="fas fa-chart-pie"></i>
+                                Duygu Analizi
+                            </h2>
+                            <div class="chart-container">
+                                <canvas id="duyguChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Popular Words -->
+                    <div class="card">
+                        <h2 class="card-header">
+                            <i class="fas fa-fire"></i>
+                            En Popüler Konular
+                        </h2>
+                        <div id="kelimeler" class="word-cloud loading">
+                            <i class="fas fa-spinner"></i>
+                            Kelimeler yükleniyor...
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Chat Section -->
+                <section class="chat-section" id="chat-section">
+                    <div class="chat-container">
+                        <div class="chat-header">
+                            <i class="fas fa-robot"></i>
+                            <div>
+                                <h2>AI Haber Asistanı</h2>
+                                <p style="color: #94a3b8; font-size: 0.9rem; margin: 0;">Haberler hakkında her şeyi sorabilirsiniz</p>
+                            </div>
+                        </div>
+
+                        <div class="chat-messages" id="chat-messages">
+                            <div class="message bot">
+                                <div class="message-avatar">
+                                    <i class="fas fa-robot"></i>
+                                </div>
+                                <div class="message-content">
+                                    <strong>Merhaba! 👋</strong><br><br>
+                                    Size haberler, duygu analizleri, trend konular ve istatistikler hakkında yardımcı olabilirim.
+                                    <br><br>
+                                    Aşağıdaki örnek sorularla başlayabilir veya kendi sorularınızı sorabilirsiniz:
+                                    <div class="suggestions">
+                                        <span class="suggestion-button" onclick="askQuestion('Son haberler neler?')">Son haberler neler?</span>
+                                        <span class="suggestion-button" onclick="askQuestion('Duygu analizi nasıl?')">Duygu analizi nasıl?</span>
+                                        <span class="suggestion-button" onclick="askQuestion('Hangi konular gündemde?')">Hangi konular gündemde?</span>
+                                        <span class="suggestion-button" onclick="askQuestion('Toplam kaç haber var?')">Kaç haber var?</span>
+                                        <span class="suggestion-button" onclick="askQuestion('Yardım')">Yardım</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="typing-indicator" id="typing-indicator">
+                            <i class="fas fa-circle-notch"></i>
+                            <span>AI düşünüyor...</span>
+                        </div>
+
+                        <div class="chat-input">
+                            <div class="input-group">
+                                <input
+                                    type="text"
+                                    class="chat-input-field"
+                                    id="chat-input"
+                                    placeholder="Haberler hakkında soru sorun..."
+                                    onkeypress="handleKeyPress(event)"
+                                    autocomplete="off"
+                                >
+                                <button class="send-btn" onclick="sendMessage()" id="send-btn">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script>
+      // Global değişkenler
+let duyguChart = null;
+let currentData = {
+    haberler: [],
+    duygular: {},
+    stats: {}
+};
+
+// Sayfa yüklendiğinde başlat
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('📱 Haber Analiz Dashboard başlatılıyor...');
+    initializeApp();
+});
+
+// Uygulamayı başlat
+function initializeApp() {
+    loadAllData();
+    setupEventListeners();
+
+    // Her 30 saniyede bir verileri güncelle
+    setInterval(loadAllData, 30000);
+}
+
+// Event listener'ları ayarla
+function setupEventListeners() {
+    // Chat input için enter tuşu
+    const chatInput = document.getElementById('chat-input');
+    if (chatInput) {
+        chatInput.addEventListener('keypress', handleKeyPress);
+    }
+
+    // Sidebar navigation
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', function() {
+            const section = this.getAttribute('onclick');
+            if (section) {
+                eval(section); // onclick'teki fonksiyonu çalıştır
+            }
+        });
+    });
+}
+
+// Tüm verileri yükle
+async function loadAllData() {
+    console.log('🔄 Veriler yükleniyor...');
+
+    try {
+        await Promise.all([
+            loadHaberler(),
+            loadDuygular(),
+            loadStats(),
+            loadPopulerKonular()
+        ]);
+        console.log('✅ Tüm veriler yüklendi');
+    } catch (error) {
+        console.error('❌ Veri yükleme hatası:', error);
+        showError('Veriler yüklenirken bir hata oluştu.');
+    }
+}
+
+// Haberleri yükle
+async function loadHaberler() {
+    try {
+        const response = await fetch('/api/ozetler');
+        const data = await response.json();
+
+        if (response.ok) {
+            currentData.haberler = data;
+            renderHaberler(data);
+        } else {
+            throw new Error(data.error || 'Haberler yüklenemedi');
+        }
+    } catch (error) {
+        console.error('Haber yükleme hatası:', error);
+        document.getElementById('haberler').innerHTML =
+            '<div class="error-message">Haberler yüklenemedi: ' + error.message + '</div>';
+    }
+}
+
+// Haberleri render et
+function renderHaberler(haberler) {
+    const container = document.getElementById('haberler');
+
+    if (!haberler || haberler.length === 0) {
+        container.innerHTML = '<div class="loading">Henüz haber bulunmuyor.</div>';
+        return;
+    }
+
+    let html = '';
+    haberler.forEach(haber => {
+        const duygu = haber.duygu || 'bilinmiyor';
+        const duygumClass = `sentiment-${duygu}`;
+        const tarih = haber.tarih || 'Bilinmiyor';
+        const kaynak = haber.kaynak || 'Bilinmiyor';
+
+        html += `
+            <div class="news-item">
+                <div class="news-title">${haber.baslik || 'Başlık yok'}</div>
+                <div class="news-summary">${haber.ozet || 'Özet mevcut değil'}</div>
+                <div class="news-meta">
+                    <span><i class="fas fa-calendar"></i> ${tarih}</span>
+                    <span><i class="fas fa-globe"></i> ${kaynak}</span>
+                    <span class="sentiment-badge ${duygumClass}">
+                        ${duygu.charAt(0).toUpperCase() + duygu.slice(1)}
+                    </span>
+                </div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
+}
+
+// Duygu analizi verilerini yükle
+async function loadDuygular() {
+    try {
+        const response = await fetch('/api/duygular');
+        const data = await response.json();
+
+        if (response.ok) {
+            currentData.duygular = data;
+            renderDuyguChart(data);
+        } else {
+            throw new Error(data.error || 'Duygu verileri yüklenemedi');
+        }
+    } catch (error) {
+        console.error('Duygu verileri yükleme hatası:', error);
+    }
+}
+
+// Duygu grafiğini oluştur
+function renderDuyguChart(data) {
+    const ctx = document.getElementById('duyguChart');
+    if (!ctx) return;
+
+    // Eski grafik varsa temizle
+    if (duyguChart) {
+        duyguChart.destroy();
+    }
+
+    if (!data.labels || data.labels.length === 0) {
+        ctx.getContext('2d').clearRect(0, 0, ctx.width, ctx.height);
+        return;
+    }
+
+    duyguChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: data.labels,
+            datasets: [{
+                data: data.values,
+                backgroundColor: data.colors,
+                borderColor: '#1e293b',
+                borderWidth: 2,
+                hoverBorderWidth: 3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        color: '#e2e8f0',
+                        padding: 15,
+                        usePointStyle: true,
+                        font: {
+                            size: 12,
+                            weight: '600'
+                        }
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                    titleColor: '#f1f5f9',
+                    bodyColor: '#e2e8f0',
+                    borderColor: '#60a5fa',
+                    borderWidth: 1,
+                    cornerRadius: 8,
+                    displayColors: true
+                }
+            },
+            cutout: '60%',
+            animation: {
+                animateRotate: true,
+                duration: 1500
+            }
+        }
+    });
+}
+
+// İstatistikleri yükle
+async function loadStats() {
+    try {
+        const response = await fetch('/api/stats');
+        const data = await response.json();
+
+        if (response.ok) {
+            currentData.stats = data;
+            renderStats(data);
+        } else {
+            throw new Error(data.error || 'İstatistikler yüklenemedi');
+        }
+    } catch (error) {
+        console.error('İstatistik yükleme hatası:', error);
+    }
+}
+
+// İstatistikleri render et
+function renderStats(data) {
+    // Animasyonlu sayı güncelleme fonksiyonu
+    function animateNumber(elementId, targetValue) {
+        const element = document.getElementById(elementId);
+        if (!element) return;
+
+        const startValue = parseInt(element.textContent) || 0;
+        const duration = 1500; // 1.5 saniye
+        const stepTime = 50; // 50ms aralıklarla
+        const steps = duration / stepTime;
+        const increment = (targetValue - startValue) / steps;
+
+        let currentValue = startValue;
+        const timer = setInterval(() => {
+            currentValue += increment;
+            if ((increment > 0 && currentValue >= targetValue) ||
+                (increment < 0 && currentValue <= targetValue)) {
+                element.textContent = targetValue.toLocaleString('tr-TR');
+                clearInterval(timer);
+            } else {
+                element.textContent = Math.floor(currentValue).toLocaleString('tr-TR');
+            }
+        }, stepTime);
+    }
+
+    // İstatistikleri güncelle
+    animateNumber('toplam-haber', data.toplam_haber || 0);
+    animateNumber('ozetlenmis', data.ozetlenmis || 0);
+
+    // Kaynak sayısını hesapla
+    const kaynak_sayisi = data.kaynaklar ? data.kaynaklar.length : 0;
+    animateNumber('kaynak-sayisi', kaynak_sayisi);
+}
+
+// Popüler konuları yükle
+async function loadPopulerKonular() {
+    try {
+        const response = await fetch('/api/populer_konular');
+        const data = await response.json();
+
+        if (response.ok) {
+            renderPopulerKonular(data);
+        } else {
+            throw new Error(data.error || 'Popüler konular yüklenemedi');
+        }
+    } catch (error) {
+        console.error('Popüler konular yükleme hatası:', error);
+        document.getElementById('kelimeler').innerHTML =
+            '<div class="error-message">Popüler konular yüklenemedi.</div>';
+    }
+}
+
+// Popüler konuları render et
+function renderPopulerKonular(data) {
+    const container = document.getElementById('kelimeler');
+
+    if (!data.kelimeler || data.kelimeler.length === 0) {
+        container.innerHTML = '<div class="loading">Henüz popüler konu bulunmuyor.</div>';
+        return;
+    }
+
+    let html = '';
+    data.kelimeler.forEach((kelime, index) => {
+        const sayi = data.sayilar[index];
+        html += `
+            <span class="word-tag" title="${sayi} kez geçiyor">
+                ${kelime.charAt(0).toUpperCase() + kelime.slice(1)} (${sayi})
+            </span>
+        `;
+    });
+
+    container.innerHTML = html;
+}
+
+// Bölüm değiştir
+function showSection(sectionName) {
+    console.log(`🔄 ${sectionName} bölümüne geçiliyor...`);
+
+    // Tüm bölümleri gizle
+    document.querySelectorAll('.dashboard-section, .chat-section').forEach(section => {
+        section.style.display = 'none';
+    });
+
+    // Nav itemları güncelle
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+    });
+
+    // Seçili bölümü göster
+    const targetSection = document.getElementById(`${sectionName}-section`);
+    if (targetSection) {
+        targetSection.style.display = 'block';
+    }
+
+    // Aktif nav item'ı işaretle
+    event.currentTarget?.classList.add('active');
+
+    // Sayfa başlığını güncelle
+    updatePageTitle(sectionName);
+
+    // Chat bölümüne geçildiğinde scroll'u en alta al
+    if (sectionName === 'chat') {
+        setTimeout(() => {
+            const messagesContainer = document.getElementById('chat-messages');
+            if (messagesContainer) {
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+        }, 100);
+    }
+}
+
+// Sayfa başlığını güncelle
+function updatePageTitle(sectionName) {
+    const titleElement = document.getElementById('page-title');
+    const subtitleElement = document.getElementById('page-subtitle');
+
+    if (!titleElement || !subtitleElement) return;
+
+    const titles = {
+        dashboard: {
+            title: '📊 Dashboard',
+            subtitle: 'Gerçek zamanlı haber analizi ve trendler'
+        },
+        chat: {
+            title: '🤖 AI Chat',
+            subtitle: 'Haberler hakkında sohbet edin'
+        }
+    };
+
+    const config = titles[sectionName] || titles.dashboard;
+    titleElement.textContent = config.title;
+    subtitleElement.textContent = config.subtitle;
+}
+
+// Chat fonksiyonları
+function handleKeyPress(event) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        sendMessage();
+    }
+}
+
+async function sendMessage() {
+    const input = document.getElementById('chat-input');
+    const sendBtn = document.getElementById('send-btn');
+    const message = input.value.trim();
+
+    if (!message) return;
+
+    // UI'ı güncelle
+    input.value = '';
+    sendBtn.disabled = true;
+
+    // Kullanıcı mesajını ekle
+    addMessage('user', message);
+
+    // Typing indicator'ı göster
+    showTypingIndicator(true);
+
+    try {
+        const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ message: message })
+        });
+
+        const data = await response.json();
+
+        // Typing indicator'ı gizle
+        showTypingIndicator(false);
+
+        if (response.ok) {
+            addMessage('bot', data.response);
+        } else {
+            addMessage('bot', `😅 Üzgünüm, bir hata oluştu: ${data.error || 'Bilinmeyen hata'}`);
+        }
+
+    } catch (error) {
+        console.error('Chat hatası:', error);
+        showTypingIndicator(false);
+        addMessage('bot', '😅 Bağlantı hatası. Lütfen tekrar deneyin.');
+    } finally {
+        sendBtn.disabled = false;
+        input.focus();
+    }
+}
+
+// Mesaj ekle
+function addMessage(type, content) {
+    const messagesContainer = document.getElementById('chat-messages');
+    if (!messagesContainer) return;
+
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${type}`;
+
+    const avatar = type === 'user'
+        ? '<i class="fas fa-user"></i>'
+        : '<i class="fas fa-robot"></i>';
+
+    // Markdown benzeri formatlamayı destekle
+    const formattedContent = formatChatContent(content);
+
+    messageDiv.innerHTML = `
+        <div class="message-avatar">
+            ${avatar}
+        </div>
+        <div class="message-content">
+            ${formattedContent}
+        </div>
+    `;
+
+    messagesContainer.appendChild(messageDiv);
+
+    // Scroll'u en alta al
+    setTimeout(() => {
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }, 100);
+}
+
+// Chat içeriğini formatla
+function formatChatContent(content) {
+    if (!content) return '';
+
+    // Basit markdown formatlaması
+    return content
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // **bold**
+        .replace(/\*(.*?)\*/g, '<em>$1</em>') // *italic*
+        .replace(/```(.*?)```/gs, '<pre><code>$1</code></pre>') // ```code```
+        .replace(/`(.*?)`/g, '<code>$1</code>') // `code`
+        .replace(/\n/g, '<br>') // Yeni satırlar
+        .replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>'); // Linkler
+}
+
+// Typing indicator göster/gizle
+function showTypingIndicator(show) {
+    const indicator = document.getElementById('typing-indicator');
+    if (indicator) {
+        indicator.style.display = show ? 'flex' : 'none';
+    }
+}
+
+// Öneri sorusu gönder
+function askQuestion(question) {
+    const input = document.getElementById('chat-input');
+    if (input) {
+        input.value = question;
+        sendMessage();
+    }
+}
+
+// Hata mesajı göster
+function showError(message) {
+    console.error('❌ Hata:', message);
+
+    // Toast benzeri bildirim (basit implementasyon)
+    const existingError = document.querySelector('.error-toast');
+    if (existingError) {
+        existingError.remove();
+    }
+
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'error-toast';
+    errorDiv.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #dc3545, #b02a37);
+        color: white;
+        padding: 15px 20px;
+        border-radius: 10px;
+        box-shadow: 0 10px 30px rgba(220, 53, 69, 0.3);
+        z-index: 10000;
+        font-weight: 600;
+        max-width: 300px;
+        animation: slideInRight 0.3s ease-out;
+    `;
+
+    errorDiv.innerHTML = `
+        <i class="fas fa-exclamation-triangle" style="margin-right: 8px;"></i>
+        ${message}
+    `;
+
+    document.body.appendChild(errorDiv);
+
+    // 5 saniye sonra otomatik kaldır
+    setTimeout(() => {
+        if (errorDiv.parentNode) {
+            errorDiv.style.animation = 'slideOutRight 0.3s ease-in';
+            setTimeout(() => errorDiv.remove(), 300);
+        }
+    }, 5000);
+}
+
+// CSS animasyonları dinamik olarak ekle
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideInRight {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+
+    @keyframes slideOutRight {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+`;
+document.head.appendChild(style);
+
+// Debug için global fonksiyonlar
+window.debugData = () => {
+    console.log('🐛 Mevcut veriler:', currentData);
+};
+
+window.refreshData = () => {
+    console.log('🔄 Veriler manuel olarak yenileniyor...');
+    loadAllData();
+};
+
+console.log('✅ Haber Analiz Dashboard script yüklendi!');
+console.log('💡 Debug için: debugData() ve refreshData() fonksiyonlarını kullanabilirsiniz.');
+    </script>
+</body>
+</html>

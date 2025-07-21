@@ -1,0 +1,86 @@
+version: '3.8'
+
+services:
+  zookeeper-haber:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: zookeeper-haber
+    ports:
+      - "2381:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - haber-net
+
+  kafka-haber:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka-haber
+    depends_on:
+      - zookeeper-haber
+    ports:
+      - "9292:9092"
+    environment:
+      KAFKA_BROKER_ID: 3
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper-haber:2181
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://host.docker.internal:9292
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    networks:
+      - haber-net
+
+  kafka-ui-haber:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui-haber
+    depends_on:
+      - kafka-haber
+    ports:
+      - "8280:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: haber
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka-haber:9092
+    networks:
+      - haber-net
+
+  mongo-haber:
+    image: mongo:6.0
+    container_name: mongo-haber
+    ports:
+      - "27018:27017"
+    networks:
+      - haber-net
+    volumes:
+      - mongo-haber-data:/data/db
+
+  spark-master:
+    image: bitnami/spark:latest
+    container_name: spark-master-haber
+    environment:
+      - SPARK_MODE=master
+    ports:
+      - "7077:7077"
+      - "8081:8080"  # Spark Master UI
+    networks:
+      - haber-net
+
+  spark-worker:
+    image: bitnami/spark:latest
+    container_name: spark-worker-haber
+    depends_on:
+      - spark-master
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark-master-haber:7077
+      - SPARK_WORKER_WEBUI_PORT=8082  # 👈 Worker UI port override
+    ports:
+      - "8082:8082"  # 👈 Spark Worker UI dışa açılır
+    networks:
+      - haber-net
+
+networks:
+  haber-net:
+    driver: bridge
+
+volumes:
+  mongo-haber-data:
+  
