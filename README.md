@@ -220,22 +220,22 @@ python main.py
 ║              v1.0.0                  ║
 ╚══════════════════════════════════════╝
 
-[2024-01-20 15:30:00] 🎯 Haber Analiz Sistemi Başlatılıyor
+[2025-07-20 15:30:00] 🎯 Haber Analiz Sistemi Başlatılıyor
 ============================================================
-[2024-01-20 15:30:01] 1️⃣ RSS Producer başlatılıyor...
-[2024-01-20 15:30:02] ✅ producer.py arka planda başlatıldı (PID: 1234)
-[2024-01-20 15:30:17] 2️⃣ Spark Streaming başlatılıyor...
-[2024-01-20 15:30:18] ✅ spark_streaming.py arka planda başlatıldı (PID: 1235)
-[2024-01-20 15:30:33] 3️⃣ Haber Özetleyici başlatılıyor...
-[2024-01-20 15:30:34] ✅ ozetleyici.py arka planda başlatıldı (PID: 1236)
-[2024-01-20 15:30:49] 4️⃣ Haber İndexleyici çalıştırılıyor...
-[2024-01-20 15:30:52] ✅ index_haberler.py başarıyla tamamlandı
-[2024-01-20 15:31:07] 5️⃣ Flask Web Uygulaması başlatılıyor...
-[2024-01-20 15:31:08] ✅ app.py arka planda başlatıldı (PID: 1237)
-[2024-01-20 15:31:08] 🎉 Tüm servisler başarıyla başlatıldı!
-[2024-01-20 15:31:08] 🌐 Web uygulaması: http://localhost:5000
+[2025-07-20 15:30:01] 1️⃣ RSS Producer başlatılıyor...
+[2025-07-20 15:30:02] ✅ producer.py arka planda başlatıldı (PID: 1234)
+[2025-07-20 15:30:17] 2️⃣ Spark Streaming başlatılıyor...
+[2025-07-20 15:30:18] ✅ spark_streaming.py arka planda başlatıldı (PID: 1235)
+[2025-07-20 15:30:33] 3️⃣ Haber Özetleyici başlatılıyor...
+[2025-07-20 15:30:34] ✅ ozetleyici.py arka planda başlatıldı (PID: 1236)
+[2025-07-20 15:30:49] 4️⃣ Haber İndexleyici çalıştırılıyor...
+[2025-07-20 15:30:52] ✅ index_haberler.py başarıyla tamamlandı
+[2025-07-20 15:31:07] 5️⃣ Flask Web Uygulaması başlatılıyor...
+[2025-07-20 15:31:08] ✅ app.py arka planda başlatıldı (PID: 1237)
+[2025-07-20 15:31:08] 🎉 Tüm servisler başarıyla başlatıldı!
+[2025-07-20 15:31:08] 🌐 Web uygulaması: http://localhost:5000
 ============================================================
-[2024-01-20 15:31:08] 💡 Sistem durdurmak için Ctrl+C tuşlayın
+[2025-07-20 15:31:08] 💡 Sistem durdurmak için Ctrl+C tuşlayın
 ```
 
 ### 🌐 **Web Dashboard**
@@ -330,14 +330,14 @@ OPENROUTER_API_KEY=your_valid_key_here
 #### ❌ Script Dosyası Bulunamadı
 ```bash
 # Çözüm: Tüm Python dosyalarının mevcut olduğundan emin olun
-[2024-01-20 15:30:00] ⚠️  producer.py dosyası bulunamadı!
-[2024-01-20 15:30:00] ❌ Sistem başlatılamıyor, eksik dosyalar var!
+[2025-07-20 15:30:00] ⚠️  producer.py dosyası bulunamadı!
+[2025-07-20 15:30:00] ❌ Sistem başlatılamıyor, eksik dosyalar var!
 ```
 
 #### ❌ Process Timeout
 ```bash
 # Çözüm: Script'lerin 5 dakika içinde tamamlanmasını sağlayın
-[2024-01-20 15:35:00] ⏰ index_haberler.py timeout'a uğradı
+[2025-07-20 15:35:00] ⏰ index_haberler.py timeout'a uğradı
 ```
 
 ---
